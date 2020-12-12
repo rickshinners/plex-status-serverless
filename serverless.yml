@@ -27,8 +27,12 @@ functions:
       PLEX_STATUS_POLLER_CLIENT_IDENTIFIER: ${ssm:/PlexStatusPollerClientIdentifier~false}
       BUCKET: ${self:custom.bucket}
 
-  hello:
-    handler: handler.hello
+  getServerInfo:
+    handler: server.getStats
     environment:
       BUCKET: ${self:custom.bucket}
       TARGET_MACHINE_IDENTIFIER: ${ssm:/PlexStatusPollerTargetMachineIdentifier~false}
+    events:
+      - http:
+          path: status
+          method: GET
