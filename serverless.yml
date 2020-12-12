@@ -1,0 +1,34 @@
+service: plex-status-node
+frameworkVersion: '2'
+
+custom:
+  bucket: ${ssm:/PlexStatusPollerStateBucket~false}
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: us-east-1
+  apiGateway:
+    shouldStartNameWithService: true
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+        - s3:PutObjectAcl
+        - s3:GetObject
+      Resource: "arn:aws:s3:::${self:custom.bucket}/*"
+
+functions:
+  updateToken:
+    handler: auth.updateToken
+    environment:
+      PLEX_USERNAME: ${ssm:/PlexUsername~true}
+      PLEX_PASSWORD: ${ssm:/PlexPassword~true}
+      PLEX_STATUS_POLLER_CLIENT_IDENTIFIER: ${ssm:/PlexStatusPollerClientIdentifier~false}
+      BUCKET: ${self:custom.bucket}
+
+  hello:
+    handler: handler.hello
+    environment:
+      BUCKET: ${self:custom.bucket}
+      TARGET_MACHINE_IDENTIFIER: ${ssm:/PlexStatusPollerTargetMachineIdentifier~false}
