@@ -21,6 +21,9 @@ module.exports.getStats = async event => {
 
   return {
     statusCode: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*'
+    },
     body: JSON.stringify(retval)
   };
 };
