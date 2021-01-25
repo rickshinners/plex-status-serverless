@@ -40,31 +40,42 @@ var transformSessions = function(sessions){
   if(sessions === undefined || sessions === null) return transformedSessions;
   sessions.forEach(session =>{
     if(session.Player.state === 'playing'){
-      const newSession = {
-        type: session.type,
-        bandwidth: session.Session.bandwidth
-      }
-      newSession.title = transformMetadataToTitle(session);
+      const newSession = transformMetadataToMediaContainer(session);
+      newSession.bandwidth = session.Session.bandwidth;
       transformedSessions.push(newSession);
     }
   });
   return transformedSessions;
 }
 
-var transformMetadataToTitle = function(metadata){
+var transformMetadataToMediaContainer = function(metadata){
+  const media = {
+    type: metadata.type
+  }
   if(metadata.type === 'movie'){
-    return `${metadata.title} (${metadata.year})`;
+    let title = [metadata.title];
+    if(metadata.year){
+      title.push(metadata.year);
+    }
+    media.title = title;
   }
-  if(metadata.type === 'episode'){
-    return `${metadata.grandparentTitle} - S${metadata.parentIndex}E${metadata.index} - ${metadata.title}`;
+  else if(metadata.type === 'episode'){
+    let title = [metadata.grandparentTitle, `S${metadata.parentIndex}E${metadata.index}`];
+    if(metadata.title){
+      title.push(metadata.title);
+    }
+    media.title = title;
   }
-  if(metadata.type === 'season'){
-    return `${metadata.parentTitle} - ${metadata.title}`;
+  else if(metadata.type === 'season'){
+    media.title = [metadata.parentTitle, metadata.title];
   }
-  if(metadata.type === 'show'){
-    return `${metadata.title} - ${metadata.childCount} Seasons`;
+  else if(metadata.type === 'show'){
+    media.title = [metadata.title, `${metadata.childCount} Seasons`];
   }
-  return `${metadata.title} [UNKNOWN MEDIA TYPE]`
+  else{
+    media.title = [metadata.title];
+  }
+  return media;
 }
 
 var getSessions = async function(ip, port, token){
@@ -118,7 +129,7 @@ var transformRecentlyAdded = function(recentlyAdded){
   const transformedRecentlyAdded = [];
   if(recentlyAdded === undefined || recentlyAdded === null) return recentlyAdded;
   recentlyAdded.forEach(recentlyAdded =>{
-    transformedRecentlyAdded.push(transformMetadataToTitle(recentlyAdded))
+    transformedRecentlyAdded.push(transformMetadataToMediaContainer(recentlyAdded))
   });
   return transformedRecentlyAdded;
 }
